@@ -1,2 +1,2 @@
-# htmlacademy.github.io
+# AlexSuRus.github.io
 Мой первый хостинг
