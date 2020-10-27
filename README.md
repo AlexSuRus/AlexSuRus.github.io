@@ -1,2 +1,1 @@
-# AlexSuRus.github.io
-Мой первый хостинг
+# AlexandrSurikoResume.github.io
