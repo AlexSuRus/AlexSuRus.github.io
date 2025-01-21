@@ -1,53 +1,45 @@
 body {
-  margin: 0;
-  padding: 0;
-
-  font-size: 20px;
-  line-height: 1.2;
-  font-family: Helvetica, Arial, sans-serif;
-  color: #ffffff;
-
-  background-color: #666666;
-  background-image:
-    repeating-linear-gradient(
-      150deg,
-      rgba(25, 25, 25, 0.06),
-      rgba(25, 25, 25, 0.06) 1px,
-      transparent 0,
-      transparent 4px),
-    repeating-linear-gradient(
-      -150deg,
-      rgba(25, 25, 25, 0.06),
-      rgba(25, 25, 25, 0.06) 1px,
-      transparent 0,
-      transparent 41px);
-
-  -ms-text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
 }
 
-main {
-  padding: 20px 20px 120px 20px;
-
-  text-align: center;
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
 }
 
 h1 {
-  margin: 0;
-
-  font-weight: normal;
-  letter-spacing: -1px;
+    color: #ff6f61;
 }
 
 p {
-  margin: 20px 0;
+    font-size: 1.2em;
 }
 
-a:link, a:visited {
-  color: #fffff3;
-  text-decoration: underline
+.cats-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.cats-gallery img {
+    width: 32%;
+    height: auto;
+    border-radius: 10px;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
 }
 
 a:hover {
-  text-decoration: none
+    text-decoration: underline;
 }
