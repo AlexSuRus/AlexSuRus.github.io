@@ -6,25 +6,81 @@
     <title>Хорошего дня!</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
         .cats-gallery {
-            font-size: 3rem; /* Увеличиваем размер эмодзи */
+            font-size: 3rem;
+            margin: 20px 0;
         }
 
         .cats-gallery span {
-            margin: 0 10px; /* Добавляем отступы между эмодзи */
+            margin: 0 10px;
+        }
+
+        .central-image {
+            width: 50%;
+            max-width: 300px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .dice-game {
+            margin-top: 30px;
+        }
+
+        .dice {
+            font-size: 5rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .dice:active {
+            transform: scale(1.1);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Желаем вам прекрасного настроения и отличного дня!</h1>
+        
         <div class="cats-gallery">
             <span>😺</span>
             <span>🐱</span>
             <span>😻</span>
-            <!-- Добавьте больше эмодзи котиков, если нужно -->
         </div>
+
+        <!-- Центрированная картинка -->
+        <img src="img/tg.jpg" alt="Центральная картинка" class="central-image">
+
+        <!-- Мини-игра с костью -->
+        <div class="dice-game">
+            <p>Кликните по кости, чтобы бросить её:</p>
+            <div id="dice" class="dice">🎲</div>
+            <p id="dice-result"></p>
+        </div>
+
         <p>Подпишитесь на наш <a href="https://t.me/god_bless_alex_su" target="_blank">телеграм канал, там тоже есть котики!</a>!</p>
     </div>
+
+    <script>
+        const dice = document.getElementById('dice');
+        const diceResult = document.getElementById('dice-result');
+
+        dice.addEventListener('click', () => {
+            // Анимация выбрасывания
+            dice.classList.add('rolling');
+            
+            // Генерация случайного числа от 1 до 6 через 500 мс
+            setTimeout(() => {
+                const result = Math.floor(Math.random() * 6) + 1;
+                diceResult.textContent = Вы выбросили: ${result};
+                
+                dice.classList.remove('rolling');
+            }, 500);
+        });
+    </script>
 </body>
 </html>
