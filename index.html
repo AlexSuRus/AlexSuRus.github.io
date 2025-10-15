@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surf Coffee Birthday Run</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <header class="hero">
+            <div class="hero-head">
+                <h1 id="hero-title">Маршрут по всем Surf Coffee в Москве</h1>
+                <div class="hero-actions">
+                    <button class="hero-action-button" id="notes-toggle" type="button">Заметки</button>
+                    <button class="hero-action-button" id="help-toggle" type="button">Справка</button>
+                </div>
+            </div>
+            <p id="hero-subtitle">Выбери стартовую точку — и мы построим милое приключение до каждого Surf Coffee, чтобы собрать бесплатные чашки на день рождения.</p>
+        </header>
+        <main class="layout">
+            <section class="map-section">
+                <div id="map" aria-label="Карта Москвы с Surf Coffee"></div>
+                <div class="floating-card">
+                    <button id="locate-button">Определить моё местоположение</button>
+                    <p id="floating-hint">Кликни на карту или выбери локацию, чтобы задать старт. Мы постараемся минимизировать общее расстояние.</p>
+                </div>
+            </section>
+            <aside class="panel">
+                <div class="panel-card compact-stats">
+                    <div class="stats-grid">
+                        <div>
+                            <span class="stat-label" id="stats-total-label">Точек</span>
+                            <span id="count" class="stat-value">0</span>
+                        </div>
+                        <div>
+                            <span class="stat-label" id="stats-completed-label">Пройдено</span>
+                            <span id="completed-count" class="stat-value">0</span>
+                        </div>
+                        <div>
+                            <span class="stat-label" id="stats-remaining-label">Осталось</span>
+                            <span id="remaining-count" class="stat-value">0</span>
+                        </div>
+                        <div>
+                            <span class="stat-label" id="stats-distance-label">Длина пути</span>
+                            <span id="distance" class="stat-value">0 км</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-card route-card">
+                    <div class="route-header">
+                        <h2 id="route-title">Маршрут</h2>
+                        <div class="filters">
+                            <label class="toggle">
+                                <input type="checkbox" id="distance-filter-toggle" checked>
+                                <span class="checkbox"></span>
+                                <span id="filter-toggle-label">Учитывать расстояние</span>
+                            </label>
+                            <label class="range">
+                                <span id="filter-range-label">Максимальное расстояние между кофейнями</span>
+                                <div class="range-control">
+                                    <input type="number" id="distance-filter-input" min="0.5" max="25" value="2" step="0.5">
+                                    <span id="filter-range-unit">км</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <ol id="route-list" class="route-list">
+                        <li>Выбери стартовую точку на карте, чтобы увидеть маршрут.</li>
+                    </ol>
+                </div>
+            </aside>
+        </main>
+        <div class="info-overlay" id="info-overlay" aria-hidden="true">
+            <div class="info-backdrop" id="info-backdrop"></div>
+            <div class="info-panel" role="dialog" aria-modal="true" aria-labelledby="info-panel-title">
+                <header class="info-header">
+                    <h2 id="info-panel-title">Как это работает</h2>
+                    <button type="button" class="info-close" id="info-close" aria-label="Закрыть">×</button>
+                </header>
+                <section class="info-body">
+                    <p class="info-paragraph">Алгоритм берёт ближайший Surf Coffee и местами улучшает маршрут, чтобы пройти все точки за минимальное расстояние.</p>
+                    <p class="info-paragraph">Маршрут ориентировочный — обязательно сверяй адреса в приложении Surf Coffee перед поездкой.</p>
+                    <p class="info-paragraph">Собери команду, зарядку и хорошее настроение: день будет длинным и кофейным.</p>
+                    <p class="info-paragraph">Переключатель «Учитывать расстояние» ограничивает длину каждого перехода между кофейнями. Поле «Максимальное расстояние между кофейнями» задаёт этот предел в километрах.</p>
+                    <p class="info-paragraph">Если хочешь идти дальше за один раз — увеличь число или выключи ограничение.</p>
+                    <p class="info-paragraph">Не забудь в разделе «Заметки» составить список напитков, которые хочешь попробовать.</p>
+                </section>
+            </div>
+        </div>
+        <div class="notes-overlay" id="notes-overlay" aria-hidden="true">
+            <div class="notes-backdrop" id="notes-backdrop"></div>
+            <div class="notes-panel" role="dialog" aria-modal="true" aria-labelledby="notes-panel-title">
+                <header class="notes-header">
+                    <div class="notes-header-text">
+                        <h2 id="notes-panel-title">Заметки о напитках</h2>
+                        <p id="notes-panel-subtitle">Составь свой кофейный сет-лист: что попробовать в каждом Surf.</p>
+                    </div>
+                    <button type="button" class="notes-close" id="notes-close" aria-label="Закрыть">×</button>
+                </header>
+                <section class="notes-body">
+                    <textarea id="notes-field" placeholder="Например: Secret Spot — флет уайт, Meow — матча, Meow — фирменный напиток..."></textarea>
+                </section>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
