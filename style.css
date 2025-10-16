@@ -428,6 +428,45 @@ body {
     min-height: 0;
 }
 
+.next-stop {
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(107, 99, 255, 0.18);
+    border-radius: 18px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 12px 28px -24px rgba(53, 34, 102, 0.45);
+}
+
+.next-stop-label {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.next-stop-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.next-stop-name::before {
+    content: '☕ ';
+    opacity: 0.75;
+}
+
+.next-stop-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.next-stop-address {
+    font-size: 0.9rem;
+    color: var(--text-soft);
+}
+
 .route-header {
     display: flex;
     justify-content: space-between;
@@ -730,6 +769,10 @@ body {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .next-stop {
+        width: 100%;
     }
 
     .info-panel {

@@ -16,6 +16,8 @@ const notesOverlay = document.getElementById('notes-overlay');
 const notesClose = document.getElementById('notes-close');
 const notesBackdrop = document.getElementById('notes-backdrop');
 const notesField = document.getElementById('notes-field');
+const nextStopName = document.getElementById('next-stop-name');
+const nextStopAddress = document.getElementById('next-stop-address');
 
 const MOSCOW_CENTER = [55.751244, 37.618423];
 const TWO_OPT_THRESHOLD = 160; // avoid heavy optimisation for huge datasets
@@ -23,6 +25,7 @@ const TWO_OPT_THRESHOLD = 160; // avoid heavy optimisation for huge datasets
 let map;
 let markers = [];
 let markerMap = new Map();
+let clusterGroup;
 let startMarker;
 let routeLine;
 let currentStart = null;
@@ -267,6 +270,7 @@ function initialiseApp() {
     completedPoints.clear();
     markerMap = new Map();
     markers = [];
+    clusterGroup = null;
     startMarker = null;
     routeLine = null;
     currentStart = null;
@@ -277,6 +281,7 @@ function initialiseApp() {
     setupFilterControls();
     setupHelpOverlay();
     setupNotes();
+    updateNextStop(null, []);
     initMap();
 }
 
@@ -433,6 +438,8 @@ function setupHelpOverlay() {
 }
 
 function initMap() {
+    if (map) return;
+
     map = L.map(mapElement, {
         zoomControl: false,
         attributionControl: false,
@@ -453,15 +460,24 @@ function initMap() {
         })
         .addTo(map);
 
+    clusterGroup = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        maxClusterRadius: 70,
+        spiderfyOnMaxZoom: true,
+    });
+    map.addLayer(clusterGroup);
+
     markers = surfPoints.map((point) => {
         const marker = createMarker(point, false);
         markerMap.set(pointKey(point), marker);
         return marker;
     });
 
-    if (markers.length) {
-        const group = L.featureGroup(markers);
-        map.fitBounds(group.getBounds().pad(0.08));
+    if (clusterGroup.getLayers().length) {
+        const bounds = clusterGroup.getBounds();
+        if (bounds.isValid()) {
+            map.fitBounds(bounds.pad(0.08));
+        }
     }
 
     if (surfPoints.length) {
@@ -488,7 +504,12 @@ function createMarker(point, completed) {
         iconAnchor: [16, 16],
     });
 
-    const marker = L.marker(point.coords, { icon }).addTo(map);
+    const marker = L.marker(point.coords, { icon });
+    if (clusterGroup) {
+        clusterGroup.addLayer(marker);
+    } else {
+        marker.addTo(map);
+    }
 
     marker.on('click', () => {
         const key = pointKey(point);
@@ -528,6 +549,8 @@ function updateMarkerState(point, completed) {
             iconAnchor: [16, 16],
         })
     );
+
+    clusterGroup?.refreshClusters(existing);
 }
 
 function setStartPoint(coords) {
@@ -560,6 +583,10 @@ function setStartPoint(coords) {
     Array.from(completedPoints).forEach((key) => {
         if (!routeKeys.has(key)) {
             completedPoints.delete(key);
+            const pointToReset = surfPoints.find((p) => pointKey(p) === key);
+            if (pointToReset) {
+                updateMarkerState(pointToReset, false);
+            }
         }
     });
 
@@ -698,6 +725,7 @@ function updateRouteList(route) {
         remainingEl.textContent = '0';
         distanceEl.textContent = '0 км';
         completedEl.textContent = '0';
+        updateNextStop(null, route);
         return;
     }
 
@@ -708,6 +736,7 @@ function updateRouteList(route) {
     const pending = decorated.filter(({ point }) => !completedPoints.has(pointKey(point)));
     const done = decorated.filter(({ point }) => completedPoints.has(pointKey(point)));
     const ordered = [...pending, ...done];
+    const nextPoint = pending.length ? pending[0].point : null;
 
     ordered.forEach(({ point, index }) => {
         const key = pointKey(point);
@@ -744,6 +773,7 @@ function updateRouteList(route) {
     });
 
     updateProgress(route);
+    updateNextStop(nextPoint, route);
 }
 
 function updateProgress(route) {
@@ -762,11 +792,39 @@ function updateProgress(route) {
     remainingEl.textContent = String(total - completed);
 }
 
+function updateNextStop(nextPoint, route) {
+    if (!nextStopName || !nextStopAddress) return;
+
+    if (nextPoint) {
+        nextStopName.textContent = nextPoint.name;
+        nextStopAddress.textContent = nextPoint.address;
+        return;
+    }
+
+    const total = route?.length ?? 0;
+    const completedInRoute = total
+        ? route.reduce((acc, point) => acc + (completedPoints.has(pointKey(point)) ? 1 : 0), 0)
+        : 0;
+
+    if (total === 0) {
+        nextStopName.textContent = '—';
+        nextStopAddress.textContent = 'Сначала выбери стартовую точку.';
+    } else if (completedInRoute >= total) {
+        nextStopName.textContent = 'Все кофейни пройдены!';
+        nextStopAddress.textContent = 'Можно отправляться праздновать ☕️';
+    } else {
+        nextStopName.textContent = '—';
+        nextStopAddress.textContent = 'Отметь пройденные кофейни, чтобы увидеть следующую.';
+    }
+}
+
 function locateUser() {
     if (!navigator.geolocation) {
         alert('Геолокация недоступна в этом браузере.');
         return;
     }
+
+    ensureMapInitialized();
 
     locateButton.disabled = true;
     locateButton.textContent = 'Определяем...';
