@@ -37,6 +37,7 @@ let distanceFilterEnabled = true;
 let maxStepKm = 2;
 let preferredStartCoords = null;
 const notesKey = 'surf-notes';
+let lastRouteLimitRelaxed = false;
 
 function pointKey(point) {
     return `${point.name}|${point.address}|${point.coords[0]}|${point.coords[1]}`;
@@ -275,6 +276,7 @@ function initialiseApp() {
     routeLine = null;
     currentStart = null;
     currentRoute = [];
+    lastRouteLimitRelaxed = false;
 
     preferredStartCoords = findPreferredStart();
 
@@ -602,29 +604,40 @@ function computeRoute(startCoords) {
 
     if (!points.length) return [];
 
-    const remaining = new Set(points.map((p) => p.index));
-    const route = [];
-    let current = { coords: startCoords };
+    const buildRoute = (limitKm) => {
+        const remaining = new Set(points.map((p) => p.index));
+        const route = [];
+        let current = { coords: startCoords };
+
+        while (remaining.size) {
+            let bestPoint = null;
+            let bestDist = Infinity;
+
+            remaining.forEach((idx) => {
+                const point = points[idx];
+                const dist = haversine(current.coords, point.coords);
+                if (dist <= limitKm && dist < bestDist) {
+                    bestDist = dist;
+                    bestPoint = point;
+                }
+            });
+
+            if (!bestPoint) break;
+            route.push(bestPoint);
+            remaining.delete(bestPoint.index);
+            current = bestPoint;
+        }
+
+        return route;
+    };
 
     const stepLimit = distanceFilterEnabled ? maxStepKm : Infinity;
+    let route = buildRoute(stepLimit);
+    lastRouteLimitRelaxed = false;
 
-    while (remaining.size) {
-        let bestPoint = null;
-        let bestDist = Infinity;
-
-        remaining.forEach((idx) => {
-            const point = points[idx];
-            const dist = haversine(current.coords, point.coords);
-            if (dist <= stepLimit && dist < bestDist) {
-                bestDist = dist;
-                bestPoint = point;
-            }
-        });
-
-        if (!bestPoint) break;
-        route.push(bestPoint);
-        remaining.delete(bestPoint.index);
-        current = bestPoint;
+    if (!route.length && distanceFilterEnabled) {
+        route = buildRoute(Infinity);
+        lastRouteLimitRelaxed = true;
     }
 
     if (route.length <= TWO_OPT_THRESHOLD) {
@@ -812,6 +825,9 @@ function updateNextStop(nextPoint, route) {
     } else if (completedInRoute >= total) {
         nextStopName.textContent = 'Все кофейни пройдены!';
         nextStopAddress.textContent = 'Можно отправляться праздновать ☕️';
+    } else if (distanceFilterEnabled && lastRouteLimitRelaxed) {
+        nextStopName.textContent = '—';
+        nextStopAddress.textContent = 'Маршрут ограничен по дистанции. Увеличь лимит, чтобы увидеть следующую кофейню.';
     } else {
         nextStopName.textContent = '—';
         nextStopAddress.textContent = 'Отметь пройденные кофейни, чтобы увидеть следующую.';
